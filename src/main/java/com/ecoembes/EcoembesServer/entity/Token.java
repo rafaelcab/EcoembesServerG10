@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Token {
-	private String token;//El token es inmutable una vez creado y debe ser generado por el sistema
+	private String tokenValor; //El token es inmutable una vez creado y debe ser generado por el sistema
 	private LocalDateTime fechaCreacion;
 	private long idUsuario;
 	
@@ -12,13 +12,13 @@ public class Token {
 	}
 	
 	public Token(long idUsuario) {
-		this.token = java.util.UUID.randomUUID().toString(); // Genera un token único (Copilot)
+		this.tokenValor = java.util.UUID.randomUUID().toString(); // Genera un token único (Copilot)
 		this.fechaCreacion = LocalDateTime.now(); 
 		this.idUsuario = idUsuario;
 	}
 	
-	public String getToken() { 
-		return token;
+	public String getTokenValor() { 
+		return tokenValor;
 	}
 	
 	public LocalDateTime getFechaCreacion() {
@@ -40,7 +40,7 @@ public class Token {
 	// hashCode and equals
 	@Override
 	public int hashCode() {
-		return Objects.hash(token);
+		return Objects.hash(tokenValor);
 	}
 	
 	@Override
@@ -52,6 +52,6 @@ public class Token {
 		if (getClass() != obj.getClass())
 			return false;
 		Token other = (Token) obj;
-		return Objects.equals(token, other.token);
+		return Objects.equals(tokenValor, other.tokenValor);
 	}
 }

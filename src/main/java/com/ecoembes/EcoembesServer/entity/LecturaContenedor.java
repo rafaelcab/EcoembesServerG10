@@ -5,15 +5,15 @@ import java.util.Objects;
 
 public class LecturaContenedor {
 	private long id;
-	private int numeroEstimadoEmbalses;
+	private int numeroEstimadoEnvases;
 	private NivelLlenado nivelLlenado;
 	
 	public LecturaContenedor() {
 	}
 	
-	public LecturaContenedor(int numeroEstimadoEmbalses, NivelLlenado nivelLlenado) {
+	public LecturaContenedor(int numeroEstimadoEnvases, NivelLlenado nivelLlenado) {
 		this.id = System.currentTimeMillis(); 
-		this.numeroEstimadoEmbalses = numeroEstimadoEmbalses;
+		this.numeroEstimadoEnvases= numeroEstimadoEnvases;
 		this.nivelLlenado = nivelLlenado;
 	}
 	
@@ -21,12 +21,12 @@ public class LecturaContenedor {
 		return id;
 	}
 	
-	public int getNumeroEstimadoEmbalses() {
-		return numeroEstimadoEmbalses;
+	public int getNumeroEstimadoEnvases() {
+		return numeroEstimadoEnvases;
 	}
 	
-	public void setNumeroEstimadoEmbalses(int numeroEstimadoEmbalses) {
-		this.numeroEstimadoEmbalses = numeroEstimadoEmbalses;
+	public void setNumeroEstimadoEnvases(int numeroEstimadoEnvases) {
+		this.numeroEstimadoEnvases = numeroEstimadoEnvases;
 	}
 	
 	public NivelLlenado getNivelLlenado() {

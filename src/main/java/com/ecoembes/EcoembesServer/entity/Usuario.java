@@ -47,6 +47,10 @@ public class Usuario {
 	public void setNombre(String nombre) {
 		this.nombre = nombre;
 	}
+	
+	public boolean checkPassword(String password) {
+	    return this.contrasenya != null && this.contrasenya.equals(password);
+	}
 
 	// hashCode and equals
 	@Override

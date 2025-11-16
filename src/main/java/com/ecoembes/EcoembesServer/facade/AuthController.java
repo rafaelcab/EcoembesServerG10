@@ -1,5 +1,7 @@
 package com.ecoembes.EcoembesServer.facade;
 
+import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,78 +21,71 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Auth Controller", description = "Operaciones relacionadas con autenticación y gestión de sesiones")
 public class AuthController {
 
-	private final AuthService authService;
+    private final AuthService authService;
 
-	// Constructor with parameters
-	public AuthController(AuthService authService) {
-		this.authService = authService;
-	}
+    // Constructor with parameters
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
-	// -------------------- LOGIN --------------------
+    // -------------------- LOGIN --------------------
 
-	@Operation(
-		summary = "Login de usuario",
-		description = "Recibe las credenciales de un usuario y devuelve un token si son correctas",
-		responses = {
-			@ApiResponse(responseCode = "200", description = "OK: Login correcto, se devuelve el token"),
-			@ApiResponse(responseCode = "401", description = "Unauthorized: Credenciales incorrectas o usuario no encontrado"),
-			@ApiResponse(responseCode = "500", description = "Internal server error")
-		}
-	)
-	@PostMapping("/login")
-	public ResponseEntity<String> login(
-		@io.swagger.v3.oas.annotations.parameters.RequestBody(
-			description = "Credenciales del usuario (email y contraseña/hash)",
-			required = true
-		)
-		@RequestBody CredencialesDTO credenciales) {
+    @Operation(
+        summary = "Login de usuario",
+        description = "Recibe las credenciales de un usuario y devuelve un token si son correctas",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "OK: Login correcto, se devuelve el token"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized: Credenciales incorrectas o usuario no encontrado")
+        }
+    )
+    @PostMapping("/login")
+    public ResponseEntity<String> login(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "User's credentials",
+            required = true
+        )
+        @RequestBody CredencialesDTO credentials) {
 
-		try {
-			String token = authService.login(credenciales.getEmail(), credenciales.getContrasenya());	
-			return new ResponseEntity<>(token, HttpStatus.OK);
-			
-		} catch (RuntimeException e) {
-			switch (e.getMessage()) {
-				case "User not found":
-				case "Invalid credentials":
-					return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-				default:
-					return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-		}
-	}
+        Optional<String> token = authService.login(
+            credentials.getEmail(),
+            credentials.getContrasenya()
+        );
 
-	// -------------------- LOGOUT --------------------
+        if (token.isPresent()) {
+            return new ResponseEntity<>(token.get(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
 
-	@Operation(
-		summary = "Logout de usuario",
-		description = "Invalida un token de sesión y cierra la sesión del usuario",
-		responses = {
-			@ApiResponse(responseCode = "204", description = "No Content: Logout correcto"),
-			@ApiResponse(responseCode = "401", description = "Unauthorized: Token inválido"),
-			@ApiResponse(responseCode = "500", description = "Internal server error")
-		}
-	)
-	@PostMapping("/logout")
-	public ResponseEntity<Void> logout(
-		@io.swagger.v3.oas.annotations.parameters.RequestBody(
-			description = "Token de autenticación en texto plano",
-			required = true
-		)
-		@RequestBody String token) {
+    // -------------------- LOGOUT --------------------
 
-		try {
-			boolean valido = authService.validarToken(token);
+    @Operation(
+            summary = "Logout de usuario",
+            description = "Invalida un token de sesión y cierra la sesión del usuario",
+            responses = {
+                @ApiResponse(responseCode = "204", description = "No Content: Logout correcto"),
+                @ApiResponse(responseCode = "401", description = "Unauthorized: Token inválido")
+            }
+        )
+        @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+	    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+	        description = "Token de autenticación en texto plano",
+	        required = true
+	    )
+	    @RequestBody String tokenBody) {
 
-			if (!valido) {
-				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-			}
+	    // Limpieza por si Swagger u otro cliente manda el token con comillas o espacios
+	    String token = tokenBody.replace("\"", "").trim();
 
-			authService.logout(token);
-			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	    Optional<Boolean> result = authService.logout(token);
 
-		} catch (Exception e) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+	    if (result.isPresent() && result.get()) {
+	        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	    } else {
+	        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+	    }
 	}
 }
+

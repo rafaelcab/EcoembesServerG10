@@ -1,5 +1,9 @@
 package com.ecoembes.EcoembesServer.dto;
 
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Data Transfer Object for Empleado entity")
 public class CredencialesDTO {
 
     private String email;

@@ -1,11 +1,14 @@
 package com.ecoembes.EcoembesServer.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.ecoembes.EcoembesServer.Assembler.PlantaReciclajeAssembler;
+import com.ecoembes.EcoembesServer.dto.PlantaCapacidadesDTO;
 import com.ecoembes.EcoembesServer.entity.CapacidadDiaria;
 import com.ecoembes.EcoembesServer.entity.PlantaReciclaje;
 
@@ -13,9 +16,11 @@ import com.ecoembes.EcoembesServer.entity.PlantaReciclaje;
 public class PlantaReciclajeService {
 
     private List<PlantaReciclaje> plantasReciclaje;
+    private final PlantaReciclajeAssembler plantaReciclajeAssembler;
 
-    public PlantaReciclajeService() {
+    public PlantaReciclajeService(PlantaReciclajeAssembler plantaReciclajeAssembler) {
         this.plantasReciclaje = new ArrayList<>();
+        this.plantaReciclajeAssembler = plantaReciclajeAssembler;
     }
 
     public List<PlantaReciclaje> getPlantasReciclaje() {
@@ -35,29 +40,59 @@ public class PlantaReciclajeService {
         this.plantasReciclaje.add(planta);
     }
 
-    // +consultarCapacidad(idPlanta : Long, fecha : LocalDateTime) : double
-   /* public double consultarCapacidad(long idPlanta, LocalDateTime fecha) {
+    // Mantengo tu método original: UNA planta, LocalDateTime -> double
+    public double consultarCapacidad(long idPlanta, LocalDateTime fecha) {
         PlantaReciclaje planta = getPlantaById(idPlanta);
 
         if (planta == null) {
             throw new RuntimeException("Plant not found");
         }
 
-        // Buscamos la capacidad para el día de 'fecha'
         for (CapacidadDiaria capacidadDiaria : planta.getCapacidades()) {
-            if (capacidadDiaria.getFecha().toLocalDate()
-                    .isEqual(fecha.toLocalDate())) {
-                return capacidadDiaria.capacidadDisponible();
+            if (capacidadDiaria.getFecha().isEqual(fecha.toLocalDate())) {
+                return capacidadDiaria.getCapacidadDisponible();
             }
         }
 
         throw new RuntimeException("Capacity not found for given date");
-    }*/
+    }
+
+    // ✅ NUEVO: capacidad disponible de TODAS las plantas para una fecha dada
+    public List<PlantaCapacidadesDTO> consultarCapacidadPorFecha(LocalDate fecha) {
+        List<PlantaCapacidadesDTO> resultado = new ArrayList<>();
+
+        for (PlantaReciclaje planta : plantasReciclaje) {
+
+            // Buscar la capacidad diaria de esa planta para la fecha dada
+            CapacidadDiaria capacidadDia = null;
+
+            for (CapacidadDiaria cd : planta.getCapacidades()) {
+                if (cd.getFecha().isEqual(fecha)) {
+                    capacidadDia = cd;
+                    break;
+                }
+            }
+
+            // Si hay registro de capacidad para esa fecha → lo añadimos
+            if (capacidadDia != null) {
+                double disponible = capacidadDia.getCapacidadDisponible();
+
+                PlantaCapacidadesDTO dto =
+                        plantaReciclajeAssembler.toPlantaCapacidadDTO(planta, disponible);
+
+                resultado.add(dto);
+            }
+
+            // Si quisieras que salgan todas las plantas aunque no tengan registro
+            // ese día, podrías añadir un else aquí creando un dto con capacidadTon
+        }
+
+        return resultado;
+    }
 
     // +enviarNotificacion(mensajeNotificacion : String) : void
     public void enviarNotificacion(String mensajeNotificacion) {
-        // Por ahora simplemente lo sacamos por consola.
-        // Aquí podrías integrar email, logs, etc.
         System.out.println("[NOTIFICACION] " + mensajeNotificacion);
     }
 }
+

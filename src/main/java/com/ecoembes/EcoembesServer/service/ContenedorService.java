@@ -10,24 +10,26 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.ecoembes.EcoembesServer.dto.ContenedorDTO;
+import com.ecoembes.EcoembesServer.dto.ContenedorEstadoDTO;
+import com.ecoembes.EcoembesServer.dto.LecturaDTO;
 import com.ecoembes.EcoembesServer.entity.Contenedor;
 import com.ecoembes.EcoembesServer.entity.LecturaContenedor;
 import com.ecoembes.EcoembesServer.entity.NivelLlenado;
+import com.ecoembes.EcoembesServer.Assembler.ContenedorAssembler;
 
 @Service
 public class ContenedorService {
 
     // Del diagrama: contenedores : List<Contenedor>
     private List<Contenedor> contenedores;
-
-    // EXTRA: almacenar el código postal de cada contenedor
-    // (porque el Contenedor entity que me has pasado NO tiene ese atributo).
     private Map<Long, Integer> codigosPostalesPorContenedor;
+    private final ContenedorAssembler contenedorAssembler;
 
     // Constructor without parameters
-    public ContenedorService() {
+    public ContenedorService(ContenedorAssembler contenedorAssembler) {
         this.contenedores = new ArrayList<>();
         this.codigosPostalesPorContenedor = new HashMap<>();
+        this.contenedorAssembler = contenedorAssembler;
     }
 
     public List<Contenedor> getContenedores() {
@@ -61,17 +63,6 @@ public class ContenedorService {
         contenedor.registrarLecturaContenedor(hoy, lectura);
     }
 
-    // Método del diagrama (sin id de contenedor):
-    // +crearLecturaContenedor(numEnvases : int, nivelLlenado : NivelLlenado) : void
-    // -> por compatibilidad, usa el primer contenedor si existe.
-    public void crearLecturaContenedor(int numEnvases, NivelLlenado nivelLlenado) {
-        if (contenedores.isEmpty()) {
-            throw new RuntimeException("No containers available");
-        }
-        crearLecturaContenedor(contenedores.get(0).getId(), numEnvases, nivelLlenado);
-    }
-
-    // Versión "lógica": indicando contenedor y fecha
     public void actualizarLecturaContenedor(long idContenedor, int numEnvases,
                                             NivelLlenado nivelLlenado, LocalDateTime fecha) {
         Contenedor contenedor = getContenedorById(idContenedor);
@@ -94,41 +85,87 @@ public class ContenedorService {
         contenedor.registrarLecturaContenedor(dia, lectura);
     }
 
-    // Método del diagrama:
-    // +actualizarLecturaContenedor(numEnvases : int, nivelLlenado : NivelLlenado, fecha : LocalDateTime) : void
-    // -> usa el primer contenedor para mantener la firma original.
-    public void actualizarLecturaContenedor(int numEnvases, NivelLlenado nivelLlenado, LocalDateTime fecha) {
-        if (contenedores.isEmpty()) {
-            throw new RuntimeException("No containers available");
-        }
-        actualizarLecturaContenedor(contenedores.get(0).getId(), numEnvases, nivelLlenado, fecha);
-    }
-/*
-    // +consultarPorFecha(codPostal : int) : ArrayList<ContenedorDTO>
-    public ArrayList<ContenedorDTO> consultarPorFecha(int codPostal) {
-        // Interpretación: devuelve los contenedores de ese CP,
-        // usando la lectura del día actual (si hay).
-        LocalDate hoy = LocalDate.now();
-        ArrayList<ContenedorDTO> resultado = new ArrayList<>();
 
-        for (Contenedor cont : contenedores) {
-            Integer cp = codigosPostalesPorContenedor.get(cont.getId());
-            if (cp != null && cp == codPostal) {
-                LecturaContenedor lectura = cont.getLecturasContenedor().get(hoy);
-                resultado.add(crearContenedorDTO(cont, lectura));
+    public List<LecturaDTO> getContenedoresFecha(Long containerId, LocalDate from, LocalDate to) {
+        Contenedor contenedor = getContenedorById(containerId);
+
+        if (contenedor == null) {
+            throw new RuntimeException("Container not found");
+        }
+
+        List<LecturaDTO> result = new ArrayList<>();
+
+        for (Map.Entry<LocalDate, LecturaContenedor> entry : contenedor.getLecturasContenedor().entrySet()) {
+            LocalDate fecha = entry.getKey();
+            LecturaContenedor lectura = entry.getValue();
+
+            // Solo consideramos las lecturas dentro del intervalo [from, to]
+            if ((fecha.isEqual(from) || fecha.isAfter(from)) &&
+                (fecha.isEqual(to)   || fecha.isBefore(to))) {
+
+                LecturaDTO dto = contenedorAssembler.toLecturaDTO(fecha, lectura);
+                if (dto != null) {
+                    result.add(dto);
+                }
             }
         }
-        return resultado;
+        return result;
     }
 
-    // +consultarPorZona(codPostal : int) : ArrayList<ContenedorDTO>
-    public ArrayList<ContenedorDTO> consultarPorZona(int codPostal) {
-        // Interpretación: "zona" = mismo CP por ahora.
-        // Si después quieres jugar con rangos de CP (ej 28080±5) se cambia aquí.
-        return consultarPorFecha(codPostal);
-    }*/
+    public List<ContenedorEstadoDTO> getContainersStatusByZone(String postalCode, LocalDate date) {
+        List<ContenedorEstadoDTO> result = new ArrayList<>();
 
-    // +alertaSaturacion() : void
+        int cpBuscado;
+        try {
+            cpBuscado = Integer.parseInt(postalCode);
+        } catch (NumberFormatException e) {
+            return result;
+        }
+
+        for (Contenedor cont : contenedores) {
+
+            Integer cp = codigosPostalesPorContenedor.get(cont.getId());
+
+            // Ahora SIN continue → procesamos solo cuando coincide
+            if (cp != null && cp == cpBuscado) {
+
+                LecturaContenedor lectura = cont.getLecturasContenedor().get(date);
+
+                int numeroEstimadoEnvases = 0;
+                NivelLlenado nivelLlenado = NivelLlenado.VERDE;
+
+                if (lectura != null) {
+                    numeroEstimadoEnvases = lectura.getNumeroEstimadoEnvases();
+                    nivelLlenado = lectura.getNivelLlenado();
+                }
+
+                result.add(new ContenedorEstadoDTO(
+                        cont.getId(),
+                        cont.getUbicacion(),
+                        cont.getCapacidad(),
+                        numeroEstimadoEnvases,
+                        nivelLlenado
+                ));
+            }
+        }
+
+        return result;
+    }
+
+    // ----------------- MÉTODO AUXILIAR COMÚN -----------------
+
+    private int calcularPorcentajeOcupacion(Contenedor contenedor, LecturaContenedor lectura) {
+        if (contenedor.getCapacidad() <= 0) {
+            return 0;
+        }
+        double ratio = lectura.getNumeroEstimadoEnvases() / contenedor.getCapacidad();
+        int porcentaje = (int) Math.round(ratio * 100);
+        if (porcentaje < 0) porcentaje = 0;
+        if (porcentaje > 100) porcentaje = 100;
+        return porcentaje;
+    }
+
+
     public void alertaSaturacion() {
         // Ejemplo simple: sacar por consola los contenedores en ROJO
         LocalDate hoy = LocalDate.now();
@@ -142,23 +179,5 @@ public class ContenedorService {
             }
         }
     }
-/*
-    // ---- Conversión Contenedor -> ContenedorDTO (lo que haría el ContenedorAssembler) ----
-    private ContenedorDTO crearContenedorDTO(Contenedor contenedor, LecturaContenedor lectura) {
-        ContenedorDTO dto = new ContenedorDTO();
-
-        dto.setId(contenedor.getId());
-        dto.setUbicacion(contenedor.getUbicacion());
-        dto.setCapacidad((int) contenedor.getCapacidad());
-
-        if (lectura != null) {
-            dto.setNivelLlenado(lectura.getNivelLlenado());
-        } else {
-            // Si no hay lectura, por defecto VERDE (decisión arbitraria).
-            dto.setNivelLlenado(NivelLlenado.VERDE);
-        }
-
-        return dto;
-    }*/
 }
 

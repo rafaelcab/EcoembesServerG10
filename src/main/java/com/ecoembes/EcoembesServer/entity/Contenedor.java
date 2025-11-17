@@ -1,6 +1,7 @@
 package com.ecoembes.EcoembesServer.entity;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -59,6 +60,16 @@ public class Contenedor {
 		if(lecturaContenedor != null && !this.lecturasContenedor.containsKey(fecha)) {
 			this.lecturasContenedor.put(fecha, lecturaContenedor);
 		}
+	}
+
+	// Returns the NivelLlenado of the most recent (latest) reading, or null if no readings exist
+	public NivelLlenado getNivelLlenadoActual() {
+		if (this.lecturasContenedor == null || this.lecturasContenedor.isEmpty()) {
+			return null;
+		}
+		LocalDate ultimaFecha = Collections.max(this.lecturasContenedor.keySet());
+		LecturaContenedor lectura = this.lecturasContenedor.get(ultimaFecha);
+		return (lectura != null) ? lectura.getNivelLlenado() : null;
 	}
 	
 	// hashCode and equals

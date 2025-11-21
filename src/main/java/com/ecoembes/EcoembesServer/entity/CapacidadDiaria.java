@@ -1,14 +1,31 @@
 package com.ecoembes.EcoembesServer.entity;
 
 import java.time.LocalDate;
+import jakarta.persistence.*;
 import java.util.Objects;
 
+@Entity
 public class CapacidadDiaria {
-	private Long id;
-	private LocalDate fecha;
-	private double capacidadTotal;
-	private double capacidadOcupada;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private LocalDate fecha;
+
+    @Column(nullable = false)
+    private double capacidadTotal;
+
+    @Column(nullable = false)
+    private double capacidadOcupada;
+
+    @ManyToOne //Para definir la relación muchos a uno con PlantaReciclaje
+    @JoinColumn(name = "planta_id", nullable = false)
+    private PlantaReciclaje plantaReciclaje;
+
 	
+
 	// Constructor without parameters
 	public CapacidadDiaria() {
 	}

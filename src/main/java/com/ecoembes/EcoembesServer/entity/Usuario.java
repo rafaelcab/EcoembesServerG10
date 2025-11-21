@@ -1,12 +1,24 @@
 package com.ecoembes.EcoembesServer.entity;
 
 import java.util.Objects;
+import jakarta.persistence.*;
 
+@Entity
 public class Usuario {
-	private long id;
-	private String email;
-	private String contrasenya;
-	private String nombre;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String contrasenya;
+
+    @Column(nullable = false)
+    private String nombre;
+
 	
 	public Usuario() {
 		this.id = System.currentTimeMillis();

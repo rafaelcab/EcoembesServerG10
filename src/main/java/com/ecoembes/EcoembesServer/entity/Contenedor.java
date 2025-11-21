@@ -6,11 +6,26 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import jakarta.persistence.*;
+
+
+@Entity
 public class Contenedor {
-	private long id;
-	private String ubicacion;
-	private double capacidad;
-	private Map<LocalDate, LecturaContenedor> lecturasContenedor = new HashMap<>();
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @Column(nullable = false)
+    private String ubicacion;
+
+    @Column(nullable = false)
+    private double capacidad;
+
+    @OneToMany(mappedBy = "contenedor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @MapKey(name = "fecha")
+    private Map<LocalDate, LecturaContenedor> lecturasContenedor = new HashMap<>();
+
 	
 	// Constructor without parameters
 	public Contenedor() {

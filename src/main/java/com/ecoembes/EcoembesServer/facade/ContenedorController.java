@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import com.ecoembes.EcoembesServer.dto.ContenedorDTO;
 import com.ecoembes.EcoembesServer.dto.ContenedorEstadoDTO;
@@ -24,6 +25,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 
 @RestController
 @RequestMapping("/ecoembes/contenedor")
@@ -151,4 +153,46 @@ public class ContenedorController {
         contenedorService.alertaSaturacion();
         return new ResponseEntity<>(HttpStatus.OK);
     }
+    
+ // =========================================================================
+    // 5. ACTUALIZAR INFORMACIÓN DE ENVASES (Endpoint 1)
+    // URL: /api/containers/info (Método PUT)
+    // =========================================================================
+    @Operation(summary = "Actualizar información de envases y estado del contenedor")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Información actualizada"),
+        @ApiResponse(responseCode = "404", description = "Contenedor no encontrado")
+    })
+    @PutMapping("/info") // Mapeado relativo a /ecoembes/contenedor, resultando en /ecoembes/contenedor/info
+    public ResponseEntity<Void> actualizarInformacion(
+            @RequestParam("id") Long id,
+            @RequestParam(value = "ubicacion", required = false) String ubicacion,
+            @RequestParam("contenedores_necesarios") int contenedoresNecesarios, // Mapeado a numeroEstimadoEnvases
+            @RequestParam("nivel_llenado") NivelLlenado nivelLlenado,
+            @RequestParam("fecha") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+
+        try {
+            // 1. Actualizar datos estáticos si se envían
+            if (ubicacion != null) {
+                // Lógica simple para actualizar ubicación si fuera necesario, 
+                // podrías añadir un método setUbicacion en el servicio.
+                Contenedor c = contenedorService.getContenedorById(id);
+                if (c != null) c.setUbicacion(ubicacion);
+            }
+
+            // 2. Actualizar lectura (nivel y envases)
+            contenedorService.actualizarLecturaContenedor(
+                id, 
+                contenedoresNecesarios, 
+                nivelLlenado, 
+                fecha.atStartOfDay() // Convertir LocalDate a LocalDateTime
+            );
+            
+            return new ResponseEntity<>(HttpStatus.OK);
+
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 }
+

@@ -11,10 +11,36 @@ import com.ecoembes.EcoembesServer.Assembler.PlantaReciclajeAssembler;
 import com.ecoembes.EcoembesServer.dto.PlantaCapacidadesDTO;
 import com.ecoembes.EcoembesServer.entity.CapacidadDiaria;
 import com.ecoembes.EcoembesServer.entity.PlantaReciclaje;
+/*import com.ecoembes.EcoembesServer.dao.PlantaReciclajeRepository;
+import com.ecoembes.EcoembesServer.integration.RecyclingPlantGatewayFactory;
+import com.ecoembes.EcoembesServer.integration.IRecyclingPlantGateway;*/
 
 @Service
 public class PlantaReciclajeService {
+	
+	/*
+	private final PlantaReciclajeRepository plantaRepository; // JPA DAO
+    private final RecyclingPlantGatewayFactory gatewayFactory; // Factory
 
+    public PlantaReciclajeService(PlantaReciclajeRepository plantaRepository, 
+                                  RecyclingPlantGatewayFactory gatewayFactory) {
+        this.plantaRepository = plantaRepository;
+        this.gatewayFactory = gatewayFactory;
+    }
+
+    // Método que consulta al exterior
+    public double consultarCapacidadReal(long idPlanta, LocalDateTime fecha) {
+        PlantaReciclaje planta = plantaRepository.findById(idPlanta)
+                .orElseThrow(() -> new RuntimeException("Planta no encontrada"));
+
+        // Usamos la factoría para obtener el conector adecuado
+        IRecyclingPlantGateway gateway = gatewayFactory.getGateway(planta.getNombre());
+        
+        // Llamada remota (REST o Socket)
+        return gateway.getCapacity(fecha.toLocalDate());
+    }
+    */
+	
     private List<PlantaReciclaje> plantasReciclaje;
     private final PlantaReciclajeAssembler plantaReciclajeAssembler;
 

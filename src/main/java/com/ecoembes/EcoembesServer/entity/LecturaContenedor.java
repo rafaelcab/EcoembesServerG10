@@ -1,30 +1,12 @@
 package com.ecoembes.EcoembesServer.entity;
 
-import java.time.LocalDate;
 import java.util.Objects;
-import jakarta.persistence.*;
 
-@Entity
+
 public class LecturaContenedor {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
-    @Column(nullable = false)
-    private int numeroEstimadoEnvases;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private NivelLlenado nivelLlenado;
-
-    @ManyToOne
-    @JoinColumn(name = "contenedor_id", nullable = false)
-    private Contenedor contenedor;
-
-    @Column(nullable = false)
-    private LocalDate fecha;
-
+	private long id;
+	private int numeroEstimadoEnvases;
+	private NivelLlenado nivelLlenado;
 	
 	public LecturaContenedor() {
 	}

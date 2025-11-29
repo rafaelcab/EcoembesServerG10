@@ -10,10 +10,4 @@ class EcoembesServerG10ApplicationTests {
 	void contextLoads() {
 	}
 
-	
-	
 }
-
-
-
-

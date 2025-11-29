@@ -62,6 +62,15 @@ public class AuthService {
     public Usuario getUserByToken(String token) {
         return tokenStore.get(token);
     }
+    
+    // Método añadido para solucionar el error en AsignacionService
+    public Usuario getUsuarioById(long id) {
+    	// Buscamos en los valores del mapa (userRepository)
+    	return userRepository.values().stream()
+        .filter(u -> u.getId() == id)
+        .findFirst()
+        .orElse(null);
+    }
 
     // Method to get the user based on the email
     public Usuario getUserByEmail(String email) {

@@ -93,21 +93,21 @@ public class InicializacionDatos {
             // -------------------------------------------------------------
             // 5. ASIGNACIONES
             // -------------------------------------------------------------
-/*            asignacionesService.generarAsignacion(
+            asignacionesService.generarAsignacion(
                     java.util.List.of(c1.getId(), c2.getId()),
                     LocalDateTime.now(),
-                    plantaNorte,
+                    plantaNorte.getId(), // <--- CAMBIO AQUÍ: Pasamos el ID
                     operador1.getId()
             );
 
             asignacionesService.generarAsignacion(
                     java.util.List.of(c3.getId()),
                     LocalDateTime.now().minusHours(5),
-                    plantaSur,
+                    plantaSur.getId(),   // <--- CAMBIO AQUÍ: Pasamos el ID
                     operador2.getId()
             );
 
-            logger.info("Asignaciones creadas");*/
+            logger.info("Asignaciones creadas");
 
 
             // -------------------------------------------------------------

@@ -1,37 +1,16 @@
 package com.ecoembes.EcoembesServer.entity;
 
 import java.time.LocalDate;
-import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@Entity
 public class Asignacion {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
-    @Column(nullable = false)
-    private LocalDate fecha;
-
-    @ManyToOne
-    @JoinColumn(name = "planta_id", nullable = false)
-    private PlantaReciclaje planta;
-
-    @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
-
-    @ManyToMany
-    @JoinTable(
-        name = "asignacion_contenedor",
-        joinColumns = @JoinColumn(name = "asignacion_id"),
-        inverseJoinColumns = @JoinColumn(name = "contenedor_id")
-    )
-    private List<Contenedor> contenedores = new ArrayList<>();
-
+	private long id;
+	private LocalDate fecha;
+	private PlantaReciclaje planta;
+	private Usuario usuario;
+	private List<Contenedor> contenedores = new ArrayList<>();
 	
 	// Constructor without parameters
 	public Asignacion() {

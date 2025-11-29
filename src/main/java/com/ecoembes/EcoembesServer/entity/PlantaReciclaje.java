@@ -2,26 +2,14 @@
 package com.ecoembes.EcoembesServer.entity;
 
 import java.util.ArrayList;
-import jakarta.persistence.*;
 import java.util.List;
 import java.util.Objects;
 
-@Entity
 public class PlantaReciclaje {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
-    @Column(nullable = false)
-    private String nombre;
-
-    @Column(nullable = false)
-    private double capacidadTon;
-
-    @OneToMany(mappedBy = "plantaReciclaje", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<CapacidadDiaria> capacidades = new ArrayList<>();
-
+	private long id;
+	private String nombre;
+	private double capacidadTon;
+	private List<CapacidadDiaria> capacidades = new ArrayList<>();
 	
 	// Constructor without parameters
 	public PlantaReciclaje() {
